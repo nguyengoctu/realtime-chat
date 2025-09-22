@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+jwt:
+  secret: testSecretKey123456789012345678901234567890
+  expiration: 900000
+  refresh-expiration: 604800000
+
+logging:
+  level:
+    com.chatapp.userservice: DEBUG

@@ -1,6 +1,56 @@
 version: '3.8'
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: chat-app-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-chatapp_users}
+      MYSQL_USER: ${DB_USERNAME:-chatapp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-chatapp123}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - chat-app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  flyway:
+    build:
+      context: .
+      dockerfile: flyway/Dockerfile
+    container_name: chat-app-flyway
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: -url=jdbc:mysql://mysql:3306/${DB_NAME:-chatapp_users} -user=${DB_USERNAME:-chatapp} -password=${DB_PASSWORD:-chatapp123} -connectRetries=60 migrate
+    networks:
+      - chat-app-network
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: chat-app-user-service
+    restart: unless-stopped
+    depends_on:
+      - flyway
+    ports:
+      - "${USER_SERVICE_PORT:-8081}:8081"
+    environment:
+      - DB_NAME=${DB_NAME:-chatapp_users}
+      - DB_USERNAME=${DB_USERNAME:-chatapp}
+      - DB_PASSWORD=${DB_PASSWORD:-chatapp123}
+      - JWT_SECRET=${JWT_SECRET:-mySecretKey123456789012345678901234567890}
+    networks:
+      - chat-app-network
+
   chat-app:
     build:
       context: ./frontend
@@ -9,12 +59,18 @@ services:
       - "80:80"
     container_name: chat-app-frontend
     restart: unless-stopped
+    depends_on:
+      - user-service
     environment:
       - NODE_ENV=production
       - APP_URL=${APP_URL:-http://localhost}
-      - API_GATEWAY_URL=${API_GATEWAY_URL:-http://localhost:3000}
+      - USER_SERVICE_URL=http://user-service:8081
+      - USER_SERVICE_PORT=${USER_SERVICE_PORT:-8081}
     networks:
       - chat-app-network
+
+volumes:
+  mysql_data:
 
 networks:
   chat-app-network:

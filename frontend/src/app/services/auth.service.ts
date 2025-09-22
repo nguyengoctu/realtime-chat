@@ -1,0 +1,105 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { UserService, UserLoginRequest, UserRegistrationRequest, AuthResponse, UserResponse } from './user.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService {
+  private currentUserSubject = new BehaviorSubject<UserResponse | null>(null);
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+
+  public currentUser$ = this.currentUserSubject.asObservable();
+  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+
+  constructor(private userService: UserService) {
+    // Check if user is already logged in on service initialization
+    this.checkAuthStatus();
+  }
+
+  register(userData: UserRegistrationRequest): Observable<any> {
+    return this.userService.register(userData);
+  }
+
+  login(credentials: UserLoginRequest): Observable<any> {
+    return this.userService.login(credentials).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          this.setAuthData(response.data);
+        }
+      })
+    );
+  }
+
+  logout(): void {
+    this.clearAuthData();
+  }
+
+  refreshToken(): Observable<any> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      this.logout();
+      throw new Error('No refresh token available');
+    }
+
+    return this.userService.refreshToken(refreshToken).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          this.setAuthData(response.data);
+        }
+      })
+    );
+  }
+
+  private setAuthData(authResponse: AuthResponse): void {
+    localStorage.setItem('accessToken', authResponse.accessToken);
+    localStorage.setItem('refreshToken', authResponse.refreshToken);
+    localStorage.setItem('currentUser', JSON.stringify(authResponse.user));
+
+    this.currentUserSubject.next(authResponse.user);
+    this.isAuthenticatedSubject.next(true);
+  }
+
+  private clearAuthData(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('currentUser');
+
+    this.currentUserSubject.next(null);
+    this.isAuthenticatedSubject.next(false);
+  }
+
+  private checkAuthStatus(): void {
+    const token = this.getAccessToken();
+    const user = this.getCurrentUser();
+
+    if (token && user) {
+      this.currentUserSubject.next(user);
+      this.isAuthenticatedSubject.next(true);
+    }
+  }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('accessToken');
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
+  }
+
+  getCurrentUser(): UserResponse | null {
+    const userStr = localStorage.getItem('currentUser');
+    return userStr ? JSON.parse(userStr) : null;
+  }
+
+  isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp < currentTime;
+    } catch (error) {
+      return true;
+    }
+  }
+}

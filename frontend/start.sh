@@ -6,16 +6,18 @@ mkdir -p /usr/share/nginx/html/assets
 # Generate env.js file with environment variables
 cat > /usr/share/nginx/html/assets/env.js << EOF
 (function (window) {
-  window.__env = window.__env || {};
-  
+  window.env = window.env || {};
+
   // Environment variables
-  window.__env.APP_URL = '${APP_URL}';
-  window.__env.BACKEND_URL = '${API_GATEWAY_URL}';
-  
+  window.env.APP_URL = '${APP_URL}';
+  window.env.USER_SERVICE_URL = '${USER_SERVICE_URL}';
+  window.env.USER_SERVICE_PORT = '${USER_SERVICE_PORT}';
+
   // Debug info
   console.log('Runtime env loaded:', {
-    APP_URL: window.__env.APP_URL,
-    BACKEND_URL: window.__env.BACKEND_URL,
+    APP_URL: window.env.APP_URL,
+    USER_SERVICE_URL: window.env.USER_SERVICE_URL,
+    USER_SERVICE_PORT: window.env.USER_SERVICE_PORT,
     current_origin: window.location.origin
   });
 })(this);
