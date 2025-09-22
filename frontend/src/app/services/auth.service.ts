@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { UserService, UserLoginRequest, UserRegistrationRequest, AuthResponse, UserResponse } from './user.service';
 
@@ -32,8 +32,19 @@ export class AuthService {
     );
   }
 
-  logout(): void {
+  logout(): Observable<any> {
+    const refreshToken = this.getRefreshToken();
+
+    // Clear local data first
     this.clearAuthData();
+
+    // If we have refresh token, call logout API to revoke it
+    if (refreshToken) {
+      return this.userService.logout(refreshToken);
+    }
+
+    // Return empty observable if no refresh token
+    return of(null);
   }
 
   refreshToken(): Observable<any> {
@@ -101,5 +112,10 @@ export class AuthService {
     } catch (error) {
       return true;
     }
+  }
+
+  isAuthenticated(): boolean {
+    const token = this.getAccessToken();
+    return token ? !this.isTokenExpired(token) : false;
   }
 }

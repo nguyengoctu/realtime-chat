@@ -136,4 +136,17 @@ public class UserService {
                 .user(UserResponse.fromUser(token.getUser()))
                 .build();
     }
+
+    public void revokeRefreshToken(String refreshToken) {
+        // Validate JWT refresh token first
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+
+        // Find and delete token from database
+        RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+
+        refreshTokenRepository.delete(token);
+    }
 }

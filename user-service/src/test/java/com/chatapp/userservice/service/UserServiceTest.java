@@ -265,4 +265,45 @@ class UserServiceTest {
 
         assertEquals("Token username mismatch", exception.getMessage());
     }
+
+    @Test
+    void revokeRefreshToken_Success() {
+        when(jwtUtil.validateToken("refresh-token-123")).thenReturn(true);
+        when(refreshTokenRepository.findByToken("refresh-token-123"))
+            .thenReturn(Optional.of(testRefreshToken));
+
+        userService.revokeRefreshToken("refresh-token-123");
+
+        verify(jwtUtil).validateToken("refresh-token-123");
+        verify(refreshTokenRepository).findByToken("refresh-token-123");
+        verify(refreshTokenRepository).delete(testRefreshToken);
+    }
+
+    @Test
+    void revokeRefreshToken_InvalidJwtToken_ThrowsException() {
+        when(jwtUtil.validateToken("invalid-jwt-token")).thenReturn(false);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> userService.revokeRefreshToken("invalid-jwt-token"));
+
+        assertEquals("Invalid refresh token", exception.getMessage());
+        verify(jwtUtil).validateToken("invalid-jwt-token");
+        verify(refreshTokenRepository, never()).findByToken(anyString());
+        verify(refreshTokenRepository, never()).delete(any());
+    }
+
+    @Test
+    void revokeRefreshToken_TokenNotFoundInDatabase_ThrowsException() {
+        when(jwtUtil.validateToken("valid-jwt-token")).thenReturn(true);
+        when(refreshTokenRepository.findByToken("valid-jwt-token"))
+            .thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> userService.revokeRefreshToken("valid-jwt-token"));
+
+        assertEquals("Refresh token not found", exception.getMessage());
+        verify(jwtUtil).validateToken("valid-jwt-token");
+        verify(refreshTokenRepository).findByToken("valid-jwt-token");
+        verify(refreshTokenRepository, never()).delete(any());
+    }
 }

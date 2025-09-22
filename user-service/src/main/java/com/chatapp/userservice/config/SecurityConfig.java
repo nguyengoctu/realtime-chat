@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh").permitAll()
+                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh", "/api/users/logout").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

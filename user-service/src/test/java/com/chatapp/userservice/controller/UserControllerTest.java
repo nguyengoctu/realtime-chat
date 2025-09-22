@@ -221,4 +221,35 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid refresh token"));
     }
+
+    @Test
+    void logout_Success() throws Exception {
+        doNothing().when(userService).revokeRefreshToken("refresh-token");
+
+        mockMvc.perform(post("/api/users/logout")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("refresh-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Logged out successfully"));
+
+        verify(userService).revokeRefreshToken("refresh-token");
+    }
+
+    @Test
+    void logout_InvalidToken() throws Exception {
+        doThrow(new RuntimeException("Invalid refresh token"))
+                .when(userService).revokeRefreshToken("invalid-token");
+
+        mockMvc.perform(post("/api/users/logout")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("invalid-token"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid refresh token"));
+
+        verify(userService).revokeRefreshToken("invalid-token");
+    }
 }

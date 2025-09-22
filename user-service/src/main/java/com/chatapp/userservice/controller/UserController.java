@@ -64,4 +64,15 @@ public class UserController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(@RequestBody String refreshToken) {
+        try {
+            userService.revokeRefreshToken(refreshToken);
+            return ResponseEntity.ok(ApiResponse.success("Logged out successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

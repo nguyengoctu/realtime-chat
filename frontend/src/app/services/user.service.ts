@@ -69,4 +69,10 @@ export class UserService {
       headers: { 'Content-Type': 'text/plain' }
     });
   }
+
+  logout(refreshToken: string): Observable<ApiResponse<string>> {
+    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/logout`, refreshToken, {
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
 }
