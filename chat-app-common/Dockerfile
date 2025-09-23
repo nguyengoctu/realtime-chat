@@ -7,7 +7,8 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean install
 
+# Final stage - just copy the built jar to maven repository location
 FROM alpine:latest
-WORKDIR /app
-COPY --from=build /root/.m2/repository/com/chatapp/chat-app-common /app/
+RUN mkdir -p /root/.m2/repository
+COPY --from=build /root/.m2/repository/ /root/.m2/repository/
 VOLUME ["/root/.m2/repository"]

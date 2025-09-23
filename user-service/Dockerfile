@@ -1,17 +1,16 @@
 # Stage 1: Build the application
 FROM maven:3.8.5-openjdk-17 AS build
 
+# Copy shared dependencies from common lib
+COPY --from=chat-app-chat-app-common /root/.m2/repository /root/.m2/repository
+
 WORKDIR /app
 
-# Copy shared library from volume
-COPY --from=chat-app-chat-app-common /app /root/.m2/repository/com/chatapp/chat-app-common
-
-# Copy pom.xml and download dependencies
+# Copy pom.xml and source code
 COPY pom.xml .
-RUN mvn dependency:go-offline
-
-# Copy source code and build
 COPY src src
+
+# Build the application
 RUN mvn clean package
 
 # Runtime stage
