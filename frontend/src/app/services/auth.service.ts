@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 import { UserService, UserLoginRequest, UserRegistrationRequest, AuthResponse, UserResponse } from './user.service';
 
 @Injectable({
@@ -38,9 +38,16 @@ export class AuthService {
     // Clear local data first
     this.clearAuthData();
 
-    // If we have refresh token, call logout API to revoke it
+    // If we have refresh token, call logout API to revoke it (ignore errors)
     if (refreshToken) {
-      return this.userService.logout(refreshToken);
+      return this.userService.logout(refreshToken).pipe(
+        tap(() => console.log('Refresh token revoked successfully')),
+        // Ignore errors - logout should always succeed locally
+        catchError(() => {
+          console.log('Failed to revoke refresh token, but logout still successful');
+          return of(null);
+        })
+      );
     }
 
     // Return empty observable if no refresh token
