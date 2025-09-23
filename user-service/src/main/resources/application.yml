@@ -5,11 +5,18 @@ spring:
   application:
     name: user-service
   datasource:
-    url: jdbc:mysql://mysql:3306/chatapp_users?useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME:chatapp}
-    password: ${DB_PASSWORD:chatapp123}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    write:
+      url: ${DB_WRITE_URL:jdbc:mysql://mysql:3306/chatapp_users?useSSL=false&allowPublicKeyRetrieval=true}
+      username: ${DB_WRITE_USERNAME:chatapp}
+      password: ${DB_WRITE_PASSWORD:chatapp123}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    read:
+      url: ${DB_READ_URL:jdbc:mysql://mysql:3306/chatapp_users?useSSL=false&allowPublicKeyRetrieval=true}
+      username: ${DB_READ_USERNAME:chatapp}
+      password: ${DB_READ_PASSWORD:chatapp123}
+      driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    packages-to-scan: com.chatapp.userservice.model
     hibernate:
       ddl-auto: none
     show-sql: true
@@ -20,7 +27,7 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}
-  expiration: 60000 # 15 minutes
+  expiration: 900000 # 15 minutes
   refresh-expiration: 604800000 # 7 days
 
 logging:

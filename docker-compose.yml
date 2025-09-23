@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  chat-app-common:
+    build:
+      context: ./chat-app-common
+      dockerfile: Dockerfile
+    container_name: chat-app-common-build
+    volumes:
+      - maven-repo:/root/.m2/repository
+
   mysql:
     image: mysql:8.0
     container_name: chat-app-mysql
@@ -41,6 +49,9 @@ services:
     restart: unless-stopped
     depends_on:
       - flyway
+      - chat-app-common
+    volumes:
+      - maven-repo:/root/.m2/repository
     ports:
       - "${USER_SERVICE_PORT:-8081}:8081"
     environment:
@@ -71,6 +82,7 @@ services:
 
 volumes:
   mysql_data:
+  maven-repo:
 
 networks:
   chat-app-network:

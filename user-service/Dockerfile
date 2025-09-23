@@ -3,6 +3,9 @@ FROM maven:3.8.5-openjdk-17 AS build
 
 WORKDIR /app
 
+# Copy shared library from volume
+COPY --from=chat-app-chat-app-common /app /root/.m2/repository/com/chatapp/chat-app-common
+
 # Copy pom.xml and download dependencies
 COPY pom.xml .
 RUN mvn dependency:go-offline

@@ -1,5 +1,7 @@
 package com.chatapp.userservice.service;
 
+import com.chatapp.common.annotation.ReadOnlyRepository;
+import com.chatapp.common.annotation.WriteRepository;
 import com.chatapp.userservice.dto.*;
 import com.chatapp.userservice.model.RefreshToken;
 import com.chatapp.userservice.model.User;
@@ -38,6 +40,7 @@ public class UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @WriteRepository
     public UserResponse registerUser(UserRegistrationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username already exists");
@@ -59,6 +62,7 @@ public class UserService {
         return UserResponse.fromUser(savedUser);
     }
 
+    @WriteRepository
     public AuthResponse loginUser(UserLoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsernameOrEmail(), request.getPassword())
@@ -78,11 +82,13 @@ public class UserService {
                 .build();
     }
 
+    @ReadOnlyRepository
     public Optional<UserResponse> getUserById(Long id) {
         return userRepository.findById(id)
                 .map(UserResponse::fromUser);
     }
 
+    @ReadOnlyRepository
     public List<UserResponse> searchUsers(String keyword) {
         return userRepository.searchUsers(keyword)
                 .stream()
@@ -104,6 +110,7 @@ public class UserService {
         return token;
     }
 
+    @WriteRepository
     public AuthResponse refreshAccessToken(String refreshToken) {
         // Validate JWT refresh token first
         if (!jwtUtil.validateToken(refreshToken)) {
@@ -137,6 +144,7 @@ public class UserService {
                 .build();
     }
 
+    @WriteRepository
     public void revokeRefreshToken(String refreshToken) {
         // Validate JWT refresh token first
         if (!jwtUtil.validateToken(refreshToken)) {
