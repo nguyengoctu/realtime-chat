@@ -9,8 +9,6 @@ import com.chatapp.userservice.repository.RefreshTokenRepository;
 import com.chatapp.userservice.repository.UserRepository;
 import com.chatapp.userservice.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,8 +39,6 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     /**
      * Registers a new user in the system after validating uniqueness of username and email.
@@ -82,13 +78,13 @@ public class UserService {
      */
     @WriteRepository
     public AuthResponse loginUser(UserLoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsernameOrEmail(), request.getPassword())
-        );
-
         User user = userRepository.findByUsername(request.getUsernameOrEmail())
                 .orElseGet(() -> userRepository.findByEmail(request.getUsernameOrEmail())
                         .orElseThrow(() -> new RuntimeException("User not found")));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Invalid credentials");
+        }
 
         String accessToken = jwtUtil.generateAccessToken(user.getUsername());
         String refreshToken = createRefreshToken(user);

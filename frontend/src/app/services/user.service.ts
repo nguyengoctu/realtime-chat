@@ -43,16 +43,16 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = `${environment.apiUrl}/api/users`;
+  private apiUrl = `${environment.apiUrl}/api`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   register(request: UserRegistrationRequest): Observable<ApiResponse<UserResponse>> {
-    return this.http.post<ApiResponse<UserResponse>>(`${this.apiUrl}/register`, request);
+    return this.http.post<ApiResponse<UserResponse>>(`${this.apiUrl}/auth/register`, request);
   }
 
   login(request: UserLoginRequest): Observable<ApiResponse<AuthResponse>> {
-    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/login`, request);
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/auth/login`, request);
   }
 
   getUserById(id: number): Observable<ApiResponse<UserResponse>> {
@@ -61,17 +61,17 @@ export class UserService {
 
   searchUsers(keyword: string): Observable<ApiResponse<UserResponse[]>> {
     const params = new HttpParams().set('keyword', keyword);
-    return this.http.get<ApiResponse<UserResponse[]>>(`${this.apiUrl}/search`, { params });
+    return this.http.get<ApiResponse<UserResponse[]>>(`${this.apiUrl}/users/search`, { params });
   }
 
   refreshToken(refreshToken: string): Observable<ApiResponse<AuthResponse>> {
-    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/refresh`, refreshToken, {
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/auth/refresh`, refreshToken, {
       headers: { 'Content-Type': 'text/plain' }
     });
   }
 
   logout(refreshToken: string): Observable<ApiResponse<string>> {
-    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/logout`, refreshToken, {
+    return this.http.post<ApiResponse<string>>(`${this.apiUrl}/auth/logout`, refreshToken, {
       headers: { 'Content-Type': 'text/plain' }
     });
   }

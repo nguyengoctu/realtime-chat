@@ -16,7 +16,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -70,7 +69,6 @@ class AuthenticationIntegrationTest {
     void fullAuthenticationFlow_Success() throws Exception {
         // Register new user
         mockMvc.perform(post("/api/users/register")
-                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registrationRequest)))
                 .andExpect(status().isCreated())
@@ -79,7 +77,6 @@ class AuthenticationIntegrationTest {
 
         // Login with registered user
         String loginResponse = mockMvc.perform(post("/api/users/login")
-                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -105,7 +102,6 @@ class AuthenticationIntegrationTest {
         duplicateRequest.setFullName("New User");
 
         mockMvc.perform(post("/api/users/register")
-                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(duplicateRequest)))
                 .andExpect(status().isBadRequest())
@@ -124,7 +120,6 @@ class AuthenticationIntegrationTest {
         duplicateRequest.setFullName("New User");
 
         mockMvc.perform(post("/api/users/register")
-                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(duplicateRequest)))
                 .andExpect(status().isBadRequest())
@@ -141,7 +136,6 @@ class AuthenticationIntegrationTest {
         emailLoginRequest.setPassword("password123");
 
         mockMvc.perform(post("/api/users/login")
-                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(emailLoginRequest)))
                 .andExpect(status().isOk())
@@ -158,7 +152,6 @@ class AuthenticationIntegrationTest {
         invalidRequest.setPassword("wrongpassword");
 
         mockMvc.perform(post("/api/users/login")
-                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());

@@ -12,8 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -39,9 +37,6 @@ class UserServiceTest {
 
     @Mock
     private JwtUtil jwtUtil;
-
-    @Mock
-    private AuthenticationManager authenticationManager;
 
     @InjectMocks
     private UserService userService;
@@ -104,7 +99,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(registrationRequest.getUsername())).thenReturn(true);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.registerUser(registrationRequest));
+                () -> userService.registerUser(registrationRequest));
 
         assertEquals("Username already exists", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
@@ -116,7 +111,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail(registrationRequest.getEmail())).thenReturn(true);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.registerUser(registrationRequest));
+                () -> userService.registerUser(registrationRequest));
 
         assertEquals("Email already exists", exception.getMessage());
         verify(userRepository, never()).save(any(User.class));
@@ -124,10 +119,8 @@ class UserServiceTest {
 
     @Test
     void loginUser_Success() {
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(null);
         when(userRepository.findByUsername(loginRequest.getUsernameOrEmail()))
-            .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(testUser));
         when(jwtUtil.generateAccessToken(testUser.getUsername())).thenReturn("access-token");
         when(jwtUtil.generateRefreshToken(testUser.getUsername())).thenReturn("jwt-refresh-token");
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(testRefreshToken);
@@ -145,15 +138,13 @@ class UserServiceTest {
 
     @Test
     void loginUser_UserNotFound_ThrowsException() {
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-            .thenReturn(null);
         when(userRepository.findByUsername(loginRequest.getUsernameOrEmail()))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
         when(userRepository.findByEmail(loginRequest.getUsernameOrEmail()))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.loginUser(loginRequest));
+                () -> userService.loginUser(loginRequest));
 
         assertEquals("User not found", exception.getMessage());
     }
@@ -195,7 +186,7 @@ class UserServiceTest {
         when(jwtUtil.validateToken("refresh-token-123")).thenReturn(true);
         when(jwtUtil.getUsernameFromToken("refresh-token-123")).thenReturn("testuser");
         when(refreshTokenRepository.findByToken("refresh-token-123"))
-            .thenReturn(Optional.of(testRefreshToken));
+                .thenReturn(Optional.of(testRefreshToken));
         when(jwtUtil.generateAccessToken(testUser.getUsername())).thenReturn("new-access-token");
 
         AuthResponse result = userService.refreshAccessToken("refresh-token-123");
@@ -213,7 +204,7 @@ class UserServiceTest {
         when(jwtUtil.validateToken("invalid-jwt-token")).thenReturn(false);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.refreshAccessToken("invalid-jwt-token"));
+                () -> userService.refreshAccessToken("invalid-jwt-token"));
 
         assertEquals("Invalid refresh token", exception.getMessage());
         verify(jwtUtil).validateToken("invalid-jwt-token");
@@ -225,10 +216,10 @@ class UserServiceTest {
         when(jwtUtil.validateToken("valid-jwt-token")).thenReturn(true);
         when(jwtUtil.getUsernameFromToken("valid-jwt-token")).thenReturn("testuser");
         when(refreshTokenRepository.findByToken("valid-jwt-token"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.refreshAccessToken("valid-jwt-token"));
+                () -> userService.refreshAccessToken("valid-jwt-token"));
 
         assertEquals("Refresh token not found", exception.getMessage());
     }
@@ -244,10 +235,10 @@ class UserServiceTest {
         when(jwtUtil.validateToken("expired-token")).thenReturn(true);
         when(jwtUtil.getUsernameFromToken("expired-token")).thenReturn("testuser");
         when(refreshTokenRepository.findByToken("expired-token"))
-            .thenReturn(Optional.of(expiredToken));
+                .thenReturn(Optional.of(expiredToken));
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.refreshAccessToken("expired-token"));
+                () -> userService.refreshAccessToken("expired-token"));
 
         assertEquals("Refresh token expired", exception.getMessage());
         verify(refreshTokenRepository).delete(expiredToken);
@@ -258,10 +249,10 @@ class UserServiceTest {
         when(jwtUtil.validateToken("refresh-token-123")).thenReturn(true);
         when(jwtUtil.getUsernameFromToken("refresh-token-123")).thenReturn("differentuser");
         when(refreshTokenRepository.findByToken("refresh-token-123"))
-            .thenReturn(Optional.of(testRefreshToken));
+                .thenReturn(Optional.of(testRefreshToken));
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.refreshAccessToken("refresh-token-123"));
+                () -> userService.refreshAccessToken("refresh-token-123"));
 
         assertEquals("Token username mismatch", exception.getMessage());
     }
@@ -270,7 +261,7 @@ class UserServiceTest {
     void revokeRefreshToken_Success() {
         when(jwtUtil.validateToken("refresh-token-123")).thenReturn(true);
         when(refreshTokenRepository.findByToken("refresh-token-123"))
-            .thenReturn(Optional.of(testRefreshToken));
+                .thenReturn(Optional.of(testRefreshToken));
 
         userService.revokeRefreshToken("refresh-token-123");
 
@@ -284,7 +275,7 @@ class UserServiceTest {
         when(jwtUtil.validateToken("invalid-jwt-token")).thenReturn(false);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.revokeRefreshToken("invalid-jwt-token"));
+                () -> userService.revokeRefreshToken("invalid-jwt-token"));
 
         assertEquals("Invalid refresh token", exception.getMessage());
         verify(jwtUtil).validateToken("invalid-jwt-token");
@@ -296,10 +287,10 @@ class UserServiceTest {
     void revokeRefreshToken_TokenNotFoundInDatabase_ThrowsException() {
         when(jwtUtil.validateToken("valid-jwt-token")).thenReturn(true);
         when(refreshTokenRepository.findByToken("valid-jwt-token"))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> userService.revokeRefreshToken("valid-jwt-token"));
+                () -> userService.revokeRefreshToken("valid-jwt-token"));
 
         assertEquals("Refresh token not found", exception.getMessage());
         verify(jwtUtil).validateToken("valid-jwt-token");

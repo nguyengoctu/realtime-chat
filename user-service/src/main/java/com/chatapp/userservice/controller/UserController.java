@@ -89,9 +89,9 @@ public class UserController {
      * @return ResponseEntity containing the API response with new authentication tokens
      */
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody String refreshToken) {
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         try {
-            AuthResponse authResponse = userService.refreshAccessToken(refreshToken);
+            AuthResponse authResponse = userService.refreshAccessToken(request.getRefreshToken());
             return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", authResponse));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
@@ -106,9 +106,9 @@ public class UserController {
      * @return ResponseEntity containing the API response with logout confirmation
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<String>> logout(@RequestBody String refreshToken) {
+    public ResponseEntity<ApiResponse<String>> logout(@Valid @RequestBody RefreshTokenRequest request) {
         try {
-            userService.revokeRefreshToken(refreshToken);
+            userService.revokeRefreshToken(request.getRefreshToken());
             return ResponseEntity.ok(ApiResponse.success("Logged out successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()

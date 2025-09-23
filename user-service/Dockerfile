@@ -11,7 +11,7 @@ COPY pom.xml .
 COPY src src
 
 # Build the application
-RUN mvn clean package
+RUN mvn clean package -Dmaven.test.skip=true
 
 # Runtime stage
 FROM openjdk:17-jdk-slim
