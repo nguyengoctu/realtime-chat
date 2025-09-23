@@ -8,6 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a refresh token for user authentication.
+ * Stores JWT refresh tokens with expiration information.
+ */
 @Entity
 @Table(name = "refresh_tokens")
 @Data
@@ -33,11 +37,20 @@ public class RefreshToken {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * JPA lifecycle callback method executed before entity persistence.
+     * Sets the creation timestamp.
+     */
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
+    /**
+     * Checks if the refresh token has expired.
+     *
+     * @return true if the token is expired, false otherwise
+     */
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
     }

@@ -5,6 +5,10 @@ import lombok.Data;
 import lombok.Builder;
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object for user response containing user information
+ * without sensitive data like password hash.
+ */
 @Data
 @Builder
 public class UserResponse {
@@ -17,6 +21,12 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /**
+     * Creates a UserResponse from a User entity.
+     *
+     * @param user the User entity to convert
+     * @return UserResponse containing user information
+     */
     public static UserResponse fromUser(User user) {
         return UserResponse.builder()
                 .id(user.getId())

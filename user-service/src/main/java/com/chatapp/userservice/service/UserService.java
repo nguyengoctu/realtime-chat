@@ -21,6 +21,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Service class for user management operations including registration, authentication,
+ * user retrieval, search, and token management.
+ */
 @Service
 @Transactional
 public class UserService {
@@ -40,6 +44,13 @@ public class UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    /**
+     * Registers a new user in the system after validating uniqueness of username and email.
+     *
+     * @param request the registration request containing user details
+     * @return UserResponse containing the registered user's information
+     * @throws RuntimeException if username or email already exists
+     */
     @WriteRepository
     public UserResponse registerUser(UserRegistrationRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
@@ -62,6 +73,13 @@ public class UserService {
         return UserResponse.fromUser(savedUser);
     }
 
+    /**
+     * Authenticates a user and generates access and refresh tokens.
+     *
+     * @param request the login request containing username/email and password
+     * @return AuthResponse containing authentication tokens and user information
+     * @throws RuntimeException if authentication fails or user not found
+     */
     @WriteRepository
     public AuthResponse loginUser(UserLoginRequest request) {
         authenticationManager.authenticate(
@@ -82,12 +100,24 @@ public class UserService {
                 .build();
     }
 
+    /**
+     * Retrieves a user by their unique identifier.
+     *
+     * @param id the unique identifier of the user
+     * @return Optional containing UserResponse if user exists, empty otherwise
+     */
     @ReadOnlyRepository
     public Optional<UserResponse> getUserById(Long id) {
         return userRepository.findById(id)
                 .map(UserResponse::fromUser);
     }
 
+    /**
+     * Searches for users based on a keyword matching username, email, or full name.
+     *
+     * @param keyword the search keyword
+     * @return List of UserResponse objects matching the search criteria
+     */
     @ReadOnlyRepository
     public List<UserResponse> searchUsers(String keyword) {
         return userRepository.searchUsers(keyword)
@@ -96,6 +126,12 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Creates a new refresh token for the specified user, removing any existing tokens.
+     *
+     * @param user the user to create a refresh token for
+     * @return the generated refresh token string
+     */
     private String createRefreshToken(User user) {
         refreshTokenRepository.deleteAllByUser(user);
 
@@ -110,6 +146,13 @@ public class UserService {
         return token;
     }
 
+    /**
+     * Refreshes an access token using a valid refresh token.
+     *
+     * @param refreshToken the refresh token to validate and use for generating new access token
+     * @return AuthResponse containing the new access token and user information
+     * @throws RuntimeException if refresh token is invalid, expired, or not found
+     */
     @WriteRepository
     public AuthResponse refreshAccessToken(String refreshToken) {
         // Validate JWT refresh token first
@@ -144,6 +187,12 @@ public class UserService {
                 .build();
     }
 
+    /**
+     * Revokes a refresh token by removing it from the database.
+     *
+     * @param refreshToken the refresh token to revoke
+     * @throws RuntimeException if refresh token is invalid or not found
+     */
     @WriteRepository
     public void revokeRefreshToken(String refreshToken) {
         // Validate JWT refresh token first

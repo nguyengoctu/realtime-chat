@@ -19,6 +19,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+/**
+ * Security configuration class that sets up Spring Security for the application.
+ * Configures JWT authentication, CORS, and access control rules.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -26,16 +30,35 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    /**
+     * Configures the password encoder for user password hashing.
+     *
+     * @return BCryptPasswordEncoder instance for secure password hashing
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures the authentication manager for user authentication.
+     *
+     * @param config the authentication configuration
+     * @return AuthenticationManager instance
+     * @throws Exception if configuration fails
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Configures the security filter chain with JWT authentication and access rules.
+     *
+     * @param http the HttpSecurity configuration object
+     * @return SecurityFilterChain configured with JWT authentication
+     * @throws Exception if configuration fails
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -50,6 +73,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Configures CORS (Cross-Origin Resource Sharing) settings for the application.
+     *
+     * @return CorsConfigurationSource with configured CORS policies
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

@@ -10,6 +10,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a user in the chat application.
+ * Contains user authentication and profile information.
+ */
 @Entity
 @Table(name = "users")
 @Data
@@ -56,18 +60,34 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    /**
+     * JPA lifecycle callback method executed before entity persistence.
+     * Sets the creation and update timestamps.
+     */
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * JPA lifecycle callback method executed before entity update.
+     * Updates the modification timestamp.
+     */
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
 
+    /**
+     * Enumeration representing possible user status values.
+     */
     public enum UserStatus {
-        ACTIVE, INACTIVE, BANNED
+        /** User is active and can use the application */
+        ACTIVE,
+        /** User is inactive */
+        INACTIVE,
+        /** User is banned from using the application */
+        BANNED
     }
 }

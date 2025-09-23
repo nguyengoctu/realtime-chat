@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for user-related operations including registration, authentication,
+ * user retrieval, and search functionality.
+ */
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
@@ -18,6 +22,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    /**
+     * Registers a new user in the system.
+     *
+     * @param request the user registration request containing username, email, password, and full name
+     * @return ResponseEntity containing the API response with user data or error message
+     */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
         try {
@@ -30,6 +40,12 @@ public class UserController {
         }
     }
 
+    /**
+     * Authenticates a user and returns access and refresh tokens.
+     *
+     * @param request the login request containing username/email and password
+     * @return ResponseEntity containing the API response with authentication tokens and user data
+     */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> loginUser(@Valid @RequestBody UserLoginRequest request) {
         try {
@@ -41,6 +57,12 @@ public class UserController {
         }
     }
 
+    /**
+     * Retrieves a user by their unique identifier.
+     *
+     * @param id the unique identifier of the user
+     * @return ResponseEntity containing the API response with user data or 404 if not found
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
@@ -48,12 +70,24 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Searches for users based on a keyword matching username, email, or full name.
+     *
+     * @param keyword the search keyword to match against user fields
+     * @return ResponseEntity containing the API response with list of matching users
+     */
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<UserResponse>>> searchUsers(@RequestParam String keyword) {
         List<UserResponse> users = userService.searchUsers(keyword);
         return ResponseEntity.ok(ApiResponse.success(users));
     }
 
+    /**
+     * Refreshes an access token using a valid refresh token.
+     *
+     * @param refreshToken the refresh token to generate a new access token
+     * @return ResponseEntity containing the API response with new authentication tokens
+     */
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@RequestBody String refreshToken) {
         try {
@@ -65,6 +99,12 @@ public class UserController {
         }
     }
 
+    /**
+     * Logs out a user by revoking their refresh token.
+     *
+     * @param refreshToken the refresh token to revoke
+     * @return ResponseEntity containing the API response with logout confirmation
+     */
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(@RequestBody String refreshToken) {
         try {

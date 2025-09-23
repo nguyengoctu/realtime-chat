@@ -16,6 +16,10 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Configuration class for setting up read/write data source separation.
+ * Configures multiple data sources and routing based on operation type.
+ */
 @Configuration
 public class DataSourceConfig {
 
@@ -43,6 +47,11 @@ public class DataSourceConfig {
     @Value("${spring.datasource.read.driver-class-name}")
     private String readDriverClassName;
 
+    /**
+     * Creates the write data source for database write operations.
+     *
+     * @return DataSource configured for write operations
+     */
     @Bean(name = "writeDataSource")
     public DataSource writeDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
@@ -53,6 +62,11 @@ public class DataSourceConfig {
         return dataSource;
     }
 
+    /**
+     * Creates the read data source for database read operations.
+     *
+     * @return DataSource configured for read operations
+     */
     @Bean(name = "readDataSource")
     public DataSource readDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
@@ -63,6 +77,13 @@ public class DataSourceConfig {
         return dataSource;
     }
 
+    /**
+     * Creates the routing data source that dynamically routes to read or write data sources.
+     *
+     * @param writeDataSource the data source for write operations
+     * @param readDataSource the data source for read operations
+     * @return RoutingDataSource that routes based on current context
+     */
     @Bean(name = "routingDataSource")
     @Primary
     public DataSource routingDataSource(
@@ -81,6 +102,13 @@ public class DataSourceConfig {
         return routingDataSource;
     }
 
+    /**
+     * Creates the JPA entity manager factory with the routing data source.
+     *
+     * @param dataSource the routing data source
+     * @param packagesToScan packages to scan for JPA entities
+     * @return LocalContainerEntityManagerFactoryBean configured with routing data source
+     */
     @Bean(name = "entityManagerFactory")
     @Primary
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
@@ -104,6 +132,12 @@ public class DataSourceConfig {
         return em;
     }
 
+    /**
+     * Creates the JPA transaction manager.
+     *
+     * @param entityManagerFactory the entity manager factory
+     * @return PlatformTransactionManager for handling transactions
+     */
     @Bean(name = "transactionManager")
     @Primary
     public PlatformTransactionManager transactionManager(
