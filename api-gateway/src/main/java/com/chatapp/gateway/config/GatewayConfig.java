@@ -52,6 +52,9 @@ public class GatewayConfig {
                                 .route("user-service", r -> r
                                                 .path("/api/users/**")
                                                 .uri(userServiceUrl))
+                                .route("user-upload", r -> r
+                                                .path("/api/upload/**")
+                                                .uri(userServiceUrl))
 
                                 // WebSocket Service routes (for future implementation)
                                 .route("websocket-service", r -> r

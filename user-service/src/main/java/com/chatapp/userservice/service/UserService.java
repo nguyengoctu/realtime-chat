@@ -202,4 +202,40 @@ public class UserService {
 
         refreshTokenRepository.delete(token);
     }
+
+    /**
+     * Updates a user's profile information.
+     * Username cannot be updated for security and consistency reasons.
+     *
+     * @param id the unique identifier of the user to update
+     * @param request the update request containing new user information
+     * @return UserResponse containing the updated user information
+     * @throws RuntimeException if user not found or email already exists for another user
+     */
+    @WriteRepository
+    public UserResponse updateUser(Long id, UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if email is being updated and if it already exists for another user
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        // Update full name if provided
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+
+        // Update avatar URL if provided
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+
+        User updatedUser = userRepository.save(user);
+        return UserResponse.fromUser(updatedUser);
+    }
 }

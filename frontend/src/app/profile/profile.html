@@ -23,14 +23,30 @@
         <div class="px-4 py-5 sm:p-6">
           <h2 class="text-lg font-medium text-gray-900 mb-6">User Profile</h2>
 
-          <div class="space-y-6">
+          <div *ngIf="loading" class="flex justify-center items-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <span class="ml-2 text-gray-600">Loading profile...</span>
+          </div>
+
+          <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-md p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Error</h3>
+                <div class="mt-2 text-sm text-red-700">{{ error }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="user && !loading" class="space-y-6">
             <div class="flex items-center space-x-6">
               <div class="shrink-0">
-                <img class="h-16 w-16 rounded-full bg-gray-300" src="https://via.placeholder.com/64" alt="Profile picture">
+                <img class="h-16 w-16 rounded-full bg-gray-300"
+                     [src]="user?.avatarUrl || 'https://via.placeholder.com/64'"
+                     [alt]="user?.fullName || user?.username">
               </div>
               <div>
-                <h3 class="text-lg font-medium text-gray-900">John Doe</h3>
-                <p class="text-sm text-gray-500">john.doe@example.com</p>
+                <h3 class="text-lg font-medium text-gray-900">{{ user?.fullName || user?.username }}</h3>
+                <p class="text-sm text-gray-500">{{ user?.email }}</p>
               </div>
             </div>
 
@@ -38,31 +54,140 @@
               <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Username</dt>
-                  <dd class="mt-1 text-sm text-gray-900">johndoe</dd>
+                  <dd class="mt-1 text-sm text-gray-900">{{ user?.username }}</dd>
                 </div>
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Status</dt>
                   <dd class="mt-1 text-sm text-gray-900">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Online
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                          [ngClass]="{
+                            'bg-green-100 text-green-800': user?.status === 'ACTIVE',
+                            'bg-red-100 text-red-800': user?.status === 'INACTIVE',
+                            'bg-gray-100 text-gray-800': user?.status !== 'ACTIVE' && user?.status !== 'INACTIVE'
+                          }">
+                      {{ user?.status }}
                     </span>
                   </dd>
                 </div>
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Member since</dt>
-                  <dd class="mt-1 text-sm text-gray-900">January 2024</dd>
+                  <dd class="mt-1 text-sm text-gray-900">{{ user?.createdAt | date:'MMMM yyyy' }}</dd>
                 </div>
                 <div>
-                  <dt class="text-sm font-medium text-gray-500">Last seen</dt>
-                  <dd class="mt-1 text-sm text-gray-900">Just now</dd>
+                  <dt class="text-sm font-medium text-gray-500">Last updated</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{{ user?.updatedAt | date:'short' }}</dd>
                 </div>
               </dl>
             </div>
 
-            <div class="border-t border-gray-200 pt-6">
-              <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            <!-- Edit Button (when not editing) -->
+            <div *ngIf="!isEditing" class="border-t border-gray-200 pt-6">
+              <button (click)="startEdit()"
+                      class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">
                 Edit Profile
               </button>
+            </div>
+          </div>
+
+          <!-- Edit Profile Form (separate card when editing) -->
+          <div *ngIf="isEditing" class="mt-6 bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-medium text-gray-900">Edit Profile</h3>
+                <button (click)="cancelEdit()"
+                        class="text-gray-400 hover:text-gray-600">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <form (ngSubmit)="saveProfile()" class="space-y-6">
+                <!-- Avatar Upload Section -->
+                <div class="flex items-center space-x-6 p-4 bg-gray-50 rounded-lg">
+                  <div class="shrink-0">
+                    <img class="h-20 w-20 rounded-full bg-gray-300 border-4 border-white shadow-lg"
+                         [src]="editForm.avatarUrl || user?.avatarUrl || 'https://via.placeholder.com/80'"
+                         [alt]="editForm.fullName || user?.username">
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="text-sm font-medium text-gray-900 mb-2">Profile Picture</h4>
+                    <input type="file"
+                           (change)="onFileSelected($event)"
+                           accept="image/*"
+                           class="block w-full text-sm text-gray-500
+                                  file:mr-4 file:py-2 file:px-4
+                                  file:rounded-lg file:border-0
+                                  file:text-sm file:font-medium
+                                  file:bg-indigo-50 file:text-indigo-700
+                                  hover:file:bg-indigo-100 file:cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-2">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="grid grid-cols-1 gap-6">
+                  <!-- Email -->
+                  <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email"
+                           id="email"
+                           [(ngModel)]="editForm.email"
+                           name="email"
+                           required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                                  sm:text-sm">
+                  </div>
+
+                  <!-- Full Name -->
+                  <div>
+                    <label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text"
+                           id="fullName"
+                           [(ngModel)]="editForm.fullName"
+                           name="fullName"
+                           placeholder="Enter your full name"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                                  sm:text-sm">
+                  </div>
+
+                  <!-- Username (read-only) -->
+                  <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text"
+                           [value]="user?.username"
+                           readonly
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm
+                                  bg-gray-50 text-gray-500 cursor-not-allowed sm:text-sm">
+                    <p class="text-xs text-gray-500 mt-1 flex items-center">
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                      </svg>
+                      Username cannot be changed
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 border-t border-gray-200">
+                  <button type="button"
+                          (click)="cancelEdit()"
+                          class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                  </button>
+                  <button type="submit"
+                          [disabled]="uploading"
+                          class="w-full sm:w-auto px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed flex items-center justify-center">
+                    <svg *ngIf="uploading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {{ uploading ? 'Saving...' : 'Save Changes' }}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

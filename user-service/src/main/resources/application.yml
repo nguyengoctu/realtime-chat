@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: user-service
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
     write:
       url: ${DB_WRITE_URL:jdbc:mysql://mysql:3306/chatapp_users?useSSL=false&allowPublicKeyRetrieval=true}

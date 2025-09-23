@@ -115,4 +115,25 @@ public class UserController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    /**
+     * Updates a user's profile information.
+     * Username cannot be updated for security and consistency reasons.
+     *
+     * @param id the unique identifier of the user to update
+     * @param request the update request containing new user information
+     * @return ResponseEntity containing the API response with updated user data
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateRequest request) {
+        try {
+            UserResponse updatedUser = userService.updateUser(id, request);
+            return ResponseEntity.ok(ApiResponse.success("User updated successfully", updatedUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

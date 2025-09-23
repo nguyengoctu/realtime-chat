@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface ApiResponse<T> {
@@ -32,6 +33,12 @@ export interface UserResponse {
   updatedAt: string;
 }
 
+export interface UserUpdateRequest {
+  email?: string;
+  fullName?: string;
+  avatarUrl?: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
@@ -47,6 +54,15 @@ export class UserService {
 
   constructor(private http: HttpClient) { }
 
+  private processUserResponse(user: UserResponse): UserResponse {
+    // Convert relative avatar path to full URL
+    if (user.avatarUrl && user.avatarUrl.startsWith('/storage/')) {
+      const appUrl = (window as any)['env']?.['APP_URL'] || window.location.origin;
+      user.avatarUrl = appUrl + user.avatarUrl;
+    }
+    return user;
+  }
+
   register(request: UserRegistrationRequest): Observable<ApiResponse<UserResponse>> {
     return this.http.post<ApiResponse<UserResponse>>(`${this.apiUrl}/auth/register`, request);
   }
@@ -56,12 +72,26 @@ export class UserService {
   }
 
   getUserById(id: number): Observable<ApiResponse<UserResponse>> {
-    return this.http.get<ApiResponse<UserResponse>>(`${this.apiUrl}/${id}`);
+    return this.http.get<ApiResponse<UserResponse>>(`${this.apiUrl}/users/${id}`).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          response.data = this.processUserResponse(response.data);
+        }
+        return response;
+      })
+    );
   }
 
   searchUsers(keyword: string): Observable<ApiResponse<UserResponse[]>> {
     const params = new HttpParams().set('keyword', keyword);
-    return this.http.get<ApiResponse<UserResponse[]>>(`${this.apiUrl}/users/search`, { params });
+    return this.http.get<ApiResponse<UserResponse[]>>(`${this.apiUrl}/users/search`, { params }).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          response.data = response.data.map(user => this.processUserResponse(user));
+        }
+        return response;
+      })
+    );
   }
 
   refreshToken(refreshToken: string): Observable<ApiResponse<AuthResponse>> {
@@ -72,5 +102,16 @@ export class UserService {
 
   logout(refreshToken: string): Observable<ApiResponse<string>> {
     return this.http.post<ApiResponse<string>>(`${this.apiUrl}/auth/logout`, { refreshToken });
+  }
+
+  updateUser(id: number, request: UserUpdateRequest): Observable<ApiResponse<UserResponse>> {
+    return this.http.put<ApiResponse<UserResponse>>(`${this.apiUrl}/users/${id}`, request).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          response.data = this.processUserResponse(response.data);
+        }
+        return response;
+      })
+    );
   }
 }
