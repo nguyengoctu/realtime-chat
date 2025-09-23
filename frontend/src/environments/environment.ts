@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: (window as any)['env']?.['API_GATEWAY_URL'] || `http://localhost:${(window as any)['env']?.['API_GATEWAY_PORT'] || '9080'}`
+  apiUrl: (window as any)['env']?.['APP_URL'] ? `${(window as any)['env']['APP_URL']}/api` : 'http://localhost/api'
 };
