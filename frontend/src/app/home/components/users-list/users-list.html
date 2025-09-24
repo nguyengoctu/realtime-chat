@@ -1,0 +1,25 @@
+<div class="w-80 h-full flex-shrink-0 bg-white shadow-md border-r border-gray-200">
+  <div class="h-full">
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Users</h2>
+    </div>
+    <div class="overflow-y-auto h-[calc(100%-5rem)]">
+      <div
+        *ngFor="let user of users"
+        (click)="onUserSelect(user)"
+        [class]="getUserItemClass(user)"
+      >
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+            {{user.name.charAt(0).toUpperCase()}}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 truncate">{{user.name}}</p>
+            <p class="text-xs text-gray-500 truncate">{{user.email}}</p>
+          </div>
+          <div [class]="getOnlineStatusClass(user.online)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

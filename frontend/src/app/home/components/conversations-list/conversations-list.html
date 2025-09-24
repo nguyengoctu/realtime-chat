@@ -1,0 +1,33 @@
+<div class="w-80 h-full flex-shrink-0 bg-white shadow-md border-r border-gray-200">
+  <div class="h-full">
+    <div class="p-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Conversations</h2>
+    </div>
+    <div class="overflow-y-auto h-[calc(100%-5rem)]">
+      <div
+        *ngFor="let conversation of conversations"
+        (click)="onConversationSelect(conversation)"
+        [class]="getConversationItemClass(conversation)"
+      >
+        <div class="flex items-center space-x-3">
+          <div [class]="getConversationAvatarClass(conversation)">
+            {{getConversationIcon(conversation)}}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline">
+              <p class="text-sm font-medium text-gray-900 truncate">{{conversation.name}}</p>
+              <p class="text-xs text-gray-500">{{conversation.lastMessageTime}}</p>
+            </div>
+            <p class="text-xs text-gray-500 truncate">{{conversation.lastMessage}}</p>
+          </div>
+          <div
+            *ngIf="conversation.unreadCount > 0"
+            class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+          >
+            {{conversation.unreadCount}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

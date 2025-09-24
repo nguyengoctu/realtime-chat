@@ -2,4 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add global styles to this file, and also import other style files */
+/* FORCE FULL VIEWPORT - OVERRIDE ALL TAILWIND DEFAULTS */
+* {
+  box-sizing: border-box !important;
+}
+
+html {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow-x: hidden !important;
+}
+
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow-x: hidden !important;
+  position: relative !important;
+}
+
+app-root {
+  display: block !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: relative !important;
+}
+
+/* Force container to take full width */
+.full-width-container {
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+  min-width: 100vw !important;
+}
+
+.full-width-flex {
+  width: 100vw !important;
+  min-width: 100vw !important;
+  max-width: none !important;
+}

@@ -1,15 +1,17 @@
-<div class="min-h-screen bg-gray-50">
-  <nav class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
+<div class="bg-gray-50 flex flex-col" style="width: 100vw; height: 100vh; min-width: 100vw;">
+  <nav class="bg-blue-600 shadow-lg flex-shrink-0" style="width: 100vw;">
+    <div class="px-6" style="width: 100vw;">
+      <div class="flex justify-between h-16 w-full">
         <div class="flex items-center">
-          <h1 class="text-xl font-semibold text-gray-900">Chat App</h1>
+          <h1 class="text-xl font-semibold text-white">Chat App</h1>
         </div>
         <div class="flex items-center space-x-4">
-          <button (click)="goToProfile()" class="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+          <button (click)="goToProfile()"
+            class="text-blue-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
             Profile
           </button>
-          <button (click)="logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+          <button (click)="logout()"
+            class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
             Logout
           </button>
         </div>
@@ -17,14 +19,53 @@
     </div>
   </nav>
 
-  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-    <div class="px-4 py-6 sm:px-0">
-      <div class="bg-white overflow-hidden shadow rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <h2 class="text-lg font-medium text-gray-900 mb-4">Welcome to Chat App</h2>
-          <p class="text-gray-600">This is the homepage. Chat functionality will be implemented here.</p>
-        </div>
-      </div>
+  <div class="flex flex-1 w-full min-w-full" style="width: 100vw; min-width: 100vw;">
+    <!-- Column 1: Navigation -->
+    <app-navigation-sidebar
+      [activeView]="activeView"
+      (viewChanged)="onViewChanged($event)">
+    </app-navigation-sidebar>
+
+    <!-- Column 2: Lists -->
+    <app-users-list
+      *ngIf="activeView === 'users'"
+      [users]="users"
+      [selectedUser]="selectedUser"
+      (userSelected)="onUserSelected($event)">
+    </app-users-list>
+
+    <app-conversations-list
+      *ngIf="activeView === 'conversations'"
+      [conversations]="conversations"
+      [selectedConversation]="selectedConversation"
+      (conversationSelected)="onConversationSelected($event)">
+    </app-conversations-list>
+
+    <!-- Column 3: Chat (needs flex-1) -->
+    <div class="flex-1">
+      <app-chat-interface
+        [selectedUser]="activeView === 'users' ? selectedUser : null"
+        [selectedConversation]="selectedConversation"
+        [messages]="getCurrentMessages()"
+        (messageSent)="onMessageSent($event)"
+        (startChatRequested)="onStartChatRequested($event)">
+      </app-chat-interface>
     </div>
+
+    <!-- Column 4: Info Panel -->
+    <app-profile-panel
+      *ngIf="activeView === 'users'"
+      [user]="selectedUser"
+      [messageCount]="getUserMessageCount(selectedUser?.id || 0)"
+      [lastActivity]="getLastActivity(selectedUser?.id || 0)"
+      (startChatRequested)="onStartChatRequested($event)">
+    </app-profile-panel>
+
+    <app-group-info-panel
+      *ngIf="activeView === 'conversations'"
+      [conversation]="selectedConversation"
+      [members]="getGroupMembers(selectedConversation?.id || 0)"
+      [messageCount]="getCurrentMessages().length">
+    </app-group-info-panel>
   </div>
 </div>
